@@ -17,7 +17,7 @@ void reap_zombie_child_process(int sig)
 {
         (void)sig;
         int saved_errno = errno;
-        while (waitpid(-1, NULL, WNOHANG));
+        while (waitpid(-1, NULL, WNOHANG) > 0);
         errno = saved_errno;
 }
 
@@ -47,7 +47,7 @@ int main(void)
         memset(&hints, 0, sizeof(hints));
 
         hints.ai_flags = AI_PASSIVE;
-        hints.ai_family = AF_UNSPEC;
+        hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
 
         if ((retval = getaddrinfo(NULL, PORT, &hints, &res)) != 0) {
@@ -117,14 +117,12 @@ int main(void)
                 if (!fork()) {
                         char *msg = "Hello, client!";
                         close(fd);
-                        if (send(new_fd, msg, strlen(msg), 0)) {
-                                close(new_fd);
-                                exit(0);
-                        } else {
+                        if (send(new_fd, msg, strlen(msg), 0) == -1) {
                                 perror("send");
-                                close(new_fd);
-                                exit(1);
                         }
+
+                        close(new_fd);
+                        exit(0);
                 }
 
                 close(new_fd);

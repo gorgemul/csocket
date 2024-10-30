@@ -20,7 +20,7 @@ int main(int argc, char **argv)
         printf("Initializing connection\n");
 
         memset(&hints, 0, sizeof(hints));
-        hints.ai_family = AF_UNSPEC;
+        hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
 
         if (argc != 2) {
@@ -52,13 +52,12 @@ int main(int argc, char **argv)
 
         if (current == NULL) {
                 fprintf(stderr, "No available connection!\n");
-                close(fd);
                 return 1;
         }
 
         printf("Connection established on: %s:%s\n", argv[1], PORT);
 
-        if ((bufsize = recv(fd, buf, LEN, 0))) {
+        if ((bufsize = recv(fd, buf, LEN-1, 0))) {
                 buf[bufsize] = '\n';
                 printf("Message received from server: %s", buf);
         }
