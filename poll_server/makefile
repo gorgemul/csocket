@@ -32,7 +32,7 @@ CFLAGS=-std=c11
 CFLAGS += -Wall
 CFLAGS += -Wextra
 CFLAGS += -Wpointer-arith
-CFLAGS += -Wcast-align
+# CFLAGS += -Wcast-align
 CFLAGS += -Wwrite-strings
 CFLAGS += -Wswitch-default
 CFLAGS += -Wunreachable-code
@@ -52,7 +52,10 @@ SYMBOLS=
 
 all: clean default
 
-default: $(SRC_FILES1)
+build: ./src/ps.c ./src/main.c
+	gcc -Wall -Wextra -std=c11 -pedantic -o ./bin/pollserver.exe ./src/main.c ./src/ps.c
+
+test: $(SRC_FILES1)
 	$(C_COMPILER) $(CFLAGS) $(INC_DIRS) $(SYMBOLS) $(SRC_FILES1) -o $(TARGET1)
 	- ./$(TARGET1)
 

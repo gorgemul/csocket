@@ -82,6 +82,96 @@ void test_append_fd_double_size(void)
         free(pfds);
 }
 
+void test_remove_fd_last_element_1(void) {
+        int count = 0;
+        int size = 5;
+
+        struct pollfd *pfds = malloc(sizeof(*pfds) * size);
+
+        pfds[0].fd = 88;
+        pfds[0].events = POLLIN;
+        count++;
+
+        remove_fd(&pfds, 0, &count);
+
+        TEST_ASSERT_EQUAL_INT(count, 0);
+
+        free(pfds);
+}
+
+void test_remove_fd_last_element_2(void) {
+        int count = 0;
+        int size = 5;
+
+        struct pollfd *pfds = malloc(sizeof(*pfds) * size);
+
+        pfds[0].fd = 77;
+        pfds[0].events = POLLIN;
+        count++;
+
+        pfds[1].fd = 88;
+        pfds[1].events = POLLIN;
+        count++;
+
+        remove_fd(&pfds, 1, &count);
+
+        TEST_ASSERT_EQUAL_INT(count, 1);
+
+        free(pfds);
+}
+
+void test_remove_fd_not_last_element_1(void) {
+        int count = 0;
+        int size = 5;
+
+        struct pollfd *pfds = malloc(sizeof(*pfds) * size);
+
+        pfds[0].fd = 77;
+        pfds[0].events = POLLIN;
+        count++;
+
+        pfds[1].fd = 88;
+        pfds[1].events = POLLIN;
+        count++;
+
+        remove_fd(&pfds, 0, &count);
+
+        TEST_ASSERT_EQUAL_INT(pfds[0].fd, 88);
+        TEST_ASSERT_EQUAL_INT(count, 1);
+
+        free(pfds);
+}
+
+void test_remove_fd_not_last_element_2(void) {
+        int count = 0;
+        int size = 5;
+
+        struct pollfd *pfds = malloc(sizeof(*pfds) * size);
+
+        pfds[0].fd = 77;
+        pfds[0].events = POLLIN;
+        count++;
+
+        pfds[1].fd = 88;
+        pfds[1].events = POLLIN;
+        count++;
+
+        pfds[2].fd = 99;
+        pfds[2].events = POLLIN;
+        count++;
+
+        pfds[3].fd = 111;
+        pfds[3].events = POLLIN;
+        count++;
+
+        remove_fd(&pfds, 1, &count);
+
+        TEST_ASSERT_EQUAL_INT(pfds[1].fd, 111);
+        TEST_ASSERT_EQUAL_INT(count, 3);
+
+        free(pfds);
+}
+
 int main(void)
 {
         UNITY_BEGIN();
@@ -90,6 +180,10 @@ int main(void)
         RUN_TEST(test_append_fd_same_size_1);
         RUN_TEST(test_append_fd_same_size_2);
         RUN_TEST(test_append_fd_double_size);
+        RUN_TEST(test_remove_fd_last_element_1);
+        RUN_TEST(test_remove_fd_last_element_2);
+        RUN_TEST(test_remove_fd_not_last_element_1);
+        RUN_TEST(test_remove_fd_not_last_element_2);
 
         UNITY_END();
 

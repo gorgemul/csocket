@@ -6,11 +6,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
 
 int init_listener(const char *port, const int backlog)
 {
         int retval = -1;
         int fd = -1;
+        int yes = 1;
         struct addrinfo hints, *res, *current;
 
         memset(&hints, 0, sizeof(hints));
@@ -26,6 +28,12 @@ int init_listener(const char *port, const int backlog)
         for (current = res; current != NULL; res = res->ai_next) {
                 if ((fd = socket(current->ai_family, current->ai_socktype, current->ai_protocol)) == -1) {
                         perror("socket");
+                        continue;
+                }
+
+                if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+                        perror("setsockopt");
+                        close(fd);
                         continue;
                 }
 
@@ -72,4 +80,45 @@ void append_fd(struct pollfd **pfds, int fd, int *count, int *size)
         (*pfds)[*count].events = POLLIN;
 
         (*count)++;
+}
+
+void remove_fd(struct pollfd **pfds, int pos, int *count)
+{
+        if ((pos >= *count) || (pos < 0)) {
+                fprintf(stderr, "Invalid delete position");
+                return;
+        }
+
+        if (*count > 1)
+                (*pfds)[pos] = (*pfds)[*count-1];
+
+        (*count)--;
+}
+
+void *get_addr(struct sockaddr *sa)
+{
+        if (sa->sa_family == AF_INET) {
+                return &(((struct sockaddr_in *)sa)->sin_addr);
+        }
+
+        return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+}
+
+void broadcast_message(int sender, int listener, char *msg, struct pollfd **pfds, int count)
+{
+        for (int i = 0; i < count; i++) {
+                int send_bytes = -1;
+                int current_fd = (*pfds)[i].fd;
+                int is_receiver = ((current_fd != listener) && (current_fd != sender));
+
+                if (!is_receiver)
+                        continue;
+
+                if ((send_bytes = send(current_fd, msg, strlen(msg), 0)) == -1) {
+                        perror("send");
+                        continue;
+                }
+
+                printf("Sending message to client(socket %d)\n", current_fd);
+        }
 }
