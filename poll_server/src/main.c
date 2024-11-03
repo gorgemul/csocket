@@ -67,9 +67,12 @@ int main(void)
                                 switch (recv_bytes) {
                                 case -1:
                                         perror("recv");
+                                        remove_fd(&pfds, i, &count);
+                                        close(pfds[i].fd);
                                         continue;
                                 case 0:
                                         remove_fd(&pfds, i, &count);
+                                        close(pfds[i].fd);
                                         printf("Remote client(socket: %d) disconnect from poll server\n", pfds[i].fd);
                                         printf("Close socket(%d) from server...\n", pfds[i].fd);
                                         printf("Remaining connection: %d\n", count);
